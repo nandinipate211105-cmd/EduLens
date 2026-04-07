@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        getUserData().role == 'admin' || 
+        (request.auth.token.email == "sahilrathod2791@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+    
+    function isTeacher() {
+      return isAuthenticated() && getUserData().role == 'teacher';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+    }
+
+    match /students/{studentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() || isTeacher();
+      allow update: if isAdmin() || isTeacher();
+      allow delete: if isAdmin();
+    }
+
+    match /questionPapers/{paperId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || isTeacher();
+      allow delete: if isAdmin();
+    }
+
+    match /answerSheets/{sheetId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentId) || isAdmin() || isTeacher());
+      allow create: if isAdmin() || isTeacher();
+      allow update: if isAdmin() || isTeacher();
+      allow delete: if isAdmin();
+    }
+  }
+}
