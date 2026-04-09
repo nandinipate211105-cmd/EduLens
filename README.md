@@ -39,3 +39,4 @@ Netlify auto-detects `netlify.toml` — build command is `npm run build`, publis
 - ✅ Missing `studentName` field in AttendanceRecord type
 - ✅ File upload handlers used wrong event type (FormEvent vs click)
 - ✅ Error handlers added to all Firebase snapshot listeners
+- LINK TO DEPLOYED APPLICATION--> https://eduplus1.netlify.app/
